@@ -1,0 +1,27 @@
+#!/bin/bash
+
+inarray() { local n=$1 h; shift; for h; do [[ $n = "$h" ]] && return; done; return 1; } # Usage: inarray "$value" "${array[@]}"
+
+	. pwd/$@ # pull in credentials, associative array 'accounts'
+
+
+for email in "${!accounts[@]}"; do
+	user="${email%%@*}"
+	pass="${accounts["$email"]}"
+	imap_tools/list_imap_folders.pl -S "imap.gmail.com:993/$email/$pass"|grep -v '^\[Gmail\]$' >./gmail-backup
+	mapfile -t imapfolders <./gmail-backup
+	rm ./gmail-backup
+	[[ -d "/media/BC_320G/gmail/$user" ]] || mkdir "/media/BC_320G/gmail/$user"
+	for folder in /media/BC_320G/gmail/"$user"/*; do
+		folder="{folder#/media/BC_320G/gmail/$user}"; folder="${folder%/}"
+		if ! inarray "$folder" "${imapfolders[@]}"; then
+			echo rm -r "$folder"
+		fi
+	done
+	for label in "${imapfolders[@]}"; do
+		echo -n "Backing up $user/$label "
+		dir="/media/BC_320G/gmail/$user/$label"
+		[[ -d "$dir" ]] || mkdir -p "$dir"/{cur,new,tmp}
+		./imap2maildir/imap2maildir -u "$email" -p "$pass" -d "$dir" -r "$label"
+	done
+done

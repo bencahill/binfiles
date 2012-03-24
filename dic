@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [[ -n "$@" ]]; then
+    opera http://dictionary.reference.com/browse/$@;
+else opera http://dictionary.reference.com/;
+fi

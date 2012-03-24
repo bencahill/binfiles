@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ $(pgrep -f "xmobar -x0" && pgrep -f "xmobar -x1") ]]
+then
+amixer get Master | awk -F'[]%[]' '/%/ {if ($7 == "off") { print "MM" } else { print $2."%" }}' | head -n 1 > /home/bencahill/.vol
+amixer get Master | awk -F'[]%[]' '/%/ {if ($7 == "off") { print "MM" } else { print $2."%" }}' | head -n 1 > /home/bencahill/.vol1
+
+elif [[ $(pgrep xmobar) ]]
+then
+amixer get Master | awk -F'[]%[]' '/%/ {if ($7 == "off") { print "MM" } else { print $2."%" }}' | head -n 1 > /home/bencahill/.vol
+fi

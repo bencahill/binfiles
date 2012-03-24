@@ -1,0 +1,100 @@
+#!/bin/bash
+
+shopt -s nocasematch
+
+while IFS= read -r -d $'\0' f; do
+
+	mapfile -t exif < <(exiv2 -g Exif.Image.Model -g Exif.Photo.DateTimeOriginal -Pv "$f")
+
+	if [[ -n "${exif[0]}" && -n "${exif[1]}" ]]; then
+
+		dir="${f%/*}"
+		file="${f##*/}"
+		file="${file%.*}"
+
+		case "${exif[0]}" in
+			DMC-FZ10) cam="fz" ;;
+			DMC-FZ7) cam="cz" ;;
+			C740UZ|"Canon PowerShot S2 IS"|"FinePix F30"|"Canon PowerShot Pro1"|"Canon PowerShot SD500"|"Canon EOS-1D Mark III"|"Canon PowerShot S5 IS"|"Canon EOS-1Ds Mark II"|"FinePix S5700 S700") cam="un" ;;
+			"Canon PowerShot S1 IS") cam="js" ;;
+			"Canon PowerShot S3 IS") cam="as" ;;
+			"NIKON D40X") cam="wx" ;;
+			"Canon PowerShot SX110 IS") cam="sx" ;;
+			*fo.*PowerShot*SP*) cam="sx" ;;
+			"Canon EOS REBEL T1i") cam="ki" ;;
+			"Canon EOS REBEL T2i") cam="ti" ;;
+			"Canon EOS DIGITAL REBEL") if [[ "$dir" = "201008" ]]; then cam="or"; else cam="un"; fi ;;
+			"KODAK P850 ZOOM DIGITAL CAMERA") cam="mk" ;;
+			"Canon PowerShot A510") cam="pa" ;;
+			"Canon PowerShot A540") cam="kf" ;;
+			"Canon PowerShot A550")
+				# special for A550 Rachel,Kevin,Dan
+				case "$(exiv2 -g Exif.Canon.FileNumber -Pv "$f" 2>/dev/null)" in
+					100*) cam="ra" ;;
+					12*|131*|138*|201*|870*) cam="ka" ;;
+					136*) cam="da" ;;
+				esac
+				;;
+			*) cam="XX" ;;
+		esac
+
+		# refer to ${!cdir} so we can keep a dir-specific count
+		# cdir="${f%/*}"
+		# cdir="c${cdir//\/}$cam"
+
+		# only cam-specific count
+		cdir="$cam"
+
+		if [[ "$f" =~ .*/img_[0-9]{4}.*\.jpg ]]; then id="${file:4}" # i
+		elif [[ "$f" =~ .*/[0-9]{6}_..[0-9]{4}\.jpg ]]; then id="${file:9:4}" # n
+		elif [[ "$f" =~ .*/[0-9]{8}.*\.jpg ]]; then
+			# restart counter if needed
+			if [[ "${!cdir}" = "999" ]]; then
+				IFS= read -r $cdir <<< "001"
+			fi
+			# a bunch of fancy magic, see BashFAQ 006
+			IFS= read -r $cdir <<< "$((${!cdir}+1))"
+			# pad it for display separately
+			id="$(printf '%03d' "${!cdir}")x"
+		elif [[ "$f" =~ .*/p[0-9]{7}\.jpg ]]; then id="${file:4:4}" # p
+		elif [[ "$f" =~ .*/rimg_[0-9]{4}\.jpg ]]; then id="${file:5:4}" # ri
+		elif [[ "$f" =~ .*/.sc.[0-9]{4}.*\.jpg ]]; then id="${file:4:4}" # d
+		elif [[ "$f" =~ .*/3dsc.[0-9]{4}\.jpg ]]; then id="${file:5:4}" # 3d
+		elif [[ "$f" =~ .*/100_[0-9]{4}\.jpg ]]; then id="${file:4:4}" # j
+		else id="-$file"
+		fi
+
+		id="${id// /_}"
+
+		#format YYYY:MM:DD HH:MM:SS to YYYYMM_DDHHMM
+		date="${exif[1]:0:4}${exif[1]:5:2}_${exif[1]:8:2}${exif[1]:11:2}${exif[1]:14:2}_"
+
+		newfile="$date$cam$id.jpg"
+
+		echo "$f:$dir/$newfile"
+
+		#do nothing for non-EXIF files
+
+	# else
+
+		# dir="${f%/*}"
+		# basedir="${f%%/*}"
+		# file="${f##*/}"
+		# file="${file%.*}"
+
+		# newfile="${basedir}_$file.jpg"
+
+		# echo "$f:$dir/$newfile"
+
+	fi
+
+	unset cam id dir cdir file date newfile basedir
+
+done < <(find . -type f -iname '*.jpg' -print0)
+
+# echo -e "\nFix 'Originals' file names to match edited versions" >&2
+
+# exif
+# cam model
+## special for d/r/k
+# filename/regex

@@ -1,0 +1,95 @@
+#!/bin/bash
+
+[[ -e /home/bencahill/rsbu ]] && { echo 'File /home/bencahill/rsbu exists!' >&2; exit 1; }
+
+bunames=( \
+  'pic2 2tb-at' \
+  'pic2a 2tb-at' \
+  'pics 2tb-benjtb'
+  'pic2 at-2tb' \
+  'pic2a at-2tb' \
+  'pics benjtb-2tb'
+  '1tb 2tb-benjtb'
+  '1tb benjtb-2tb'
+  )
+
+bupaths=( \
+  '/media/BC_2T_ext/picasa/Picasa2/' \
+  '/media/BC_2T_ext/picasa/Picasa2Albums/' \
+  '/media/BC_2T_ext/1tb/Data/Media/Pictures/' \
+  'at2600::lappdata/Google/Picasa2/' \
+  'at2600::lappdata/Google/Picasa2Albums/' \
+  'at2600::benjtb/Data/Media/Pictures/' \
+  '/media/BC_2T_ext/1tb/' \
+  'at2600::benjtb/' \
+  )
+
+bupathd=( \
+  'at2600::lappdata/Google/Picasa2/' \
+  'at2600::lappdata/Google/Picasa2Albums/' \
+  'at2600::benjtb/Data/Media/Pictures/' \
+  '/media/BC_2T_ext/picasa/Picasa2/' \
+  '/media/BC_2T_ext/picasa/Picasa2Albums/' \
+  '/media/BC_2T_ext/1tb/Data/Media/Pictures/' \
+  'at2600::benjtb/' \
+  '/media/BC_2T_ext/1tb/' \
+  )
+
+for (( i=0; i < "${#bupaths[@]}"; i++ )); do
+  echo "[$((i+1))] ${bunames[$i]}"
+done
+
+echo -n "Please pick the desired backup set (default=1): "
+
+read buset
+
+case "$buset" in
+  "" ) buset=1;;
+  [0-9] ) if [[ "$buset" -gt "${#bupaths[@]}" ]]; then echo "Number too high"; exit; fi;;
+  * ) echo "Wut?"; exit 1;;
+esac
+
+buset=$((buset-1))
+
+#rsync -ritP --delete --only-write-batch=/home/bencahill/rsbu "${bupaths[$buset]}" "${bupathd[$buset]}"|less
+rsync -ritzn --delete -W --exclude '/RECYCLER' --exclude '/System Volume Information' "${bupaths[$buset]}" "${bupathd[$buset]}"|less
+
+echo
+echo -n "Proceed with backup? [Y/n] "
+
+read bucont
+
+case "$bucont" in
+  #""|Y|y ) rsync -ritP --delete --no-W --read-batch=/home/bencahill/rsbu "${bupathd[$buset]}";;
+  ""|Y|y ) rsync -ritzP --delete -W --exclude '/RECYCLER' --exclude '/System Volume Information' "${bupaths[$buset]}" "${bupathd[$buset]}";;
+  [!Nn]* ) echo 'Unkown response!';;
+esac
+
+[[ -e /home/bencahill/rsbu ]] && rm -f /home/bencahill/rsbu
+[[ -e /home/bencahill/rsbu.sh ]] && rm -f /home/bencahill/rsbu.sh
+
+#butypes=( \
+#  '-ritn --delete' \
+#  '-ritn' \
+#  '-ritP --delete' \
+#  '-ritP' \
+#  )
+#
+#echo
+#echo "Please pick the backup type (default=1):"
+#for (( i=0; i < "${#butypes[@]}"; i++ )); do
+#  echo "[$((i+1))] ${butypes[$i]}"
+#done
+#
+#read butype
+#
+#case "$butype" in
+#  "" ) butype=1;;
+#  [0-9] ) if [[ "$butype" -gt "${#butypes[@]}" ]]; then echo "Number too high"; exit; fi;;
+#  * ) echo "Wut?"; exit 1;;
+#esac
+#
+#butype=$((butype-1))
+#
+#echo
+#rsync ${butypes[$butype]} "${bupaths[$buset]}" "${bupathd[$buset]}"

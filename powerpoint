@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ $1 = "" ]]; then
+    WINEPREFIX="/home/bencahill/.wine_office/" wine "C:\Program Files\Microsoft Office\Office\POWERPNT.EXE"
+else
+    WINEPREFIX="/home/bencahill/.wine_office/" wine start /ProgIDOpen PowerPoint.Show.8 "$1"
+fi

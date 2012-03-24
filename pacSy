@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ipr=$(ip route); ipr=${ipr#*via }; ipr=${ipr%% dev*};
+case $ipr in
+10.0.0.1) export http_proxy="http://www:kw51humming@10.0.0.1:8080/"; export https_proxy="http://www:kw51humming@10.0.0.1:8080/" ;;
+10.0.1.1) export http_proxy="http://www:kw51humming@10.0.1.1:8080/"; export https_proxy="http://www:kw51humming@10.0.1.1:8080/" ;;
+10.0.2.1) export http_proxy="http://www:kw51humming@10.0.2.1:8080/"; export https_proxy="http://www:kw51humming@10.0.2.1:8080/" ;;
+*) unset http_proxy; unset https_proxy ;;
+esac
+unset ipr
+
+pacman -Sy

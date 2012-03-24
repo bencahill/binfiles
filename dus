@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sort -n < <(bash -c 'shopt -s dotglob; for i in *; do echo "$(find "$i"|wc -l) $i"; done')

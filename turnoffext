@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for i in /dev/sd[b-z]; do
+  if ! grep "$i" /proc/mounts >/dev/null; then
+    sudo hdparm -q -y "$i" 2>/dev/null
+  fi
+done

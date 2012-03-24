@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo /home/bencahill/host.sh 9987 &

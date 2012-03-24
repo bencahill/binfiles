@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+
+set force_conservative 0  ;# set to 1 to force conservative mode even if
+			  ;# script wasn't run conservatively originally
+if {$force_conservative} {
+	set send_slow {1 .1}
+	proc send {ignore arg} {
+		sleep .1
+		exp_send -s -- $arg
+	}
+}
+
+set profile [lindex $argv 0]
+
+log_user 0
+set timeout -1
+match_max 100000
+if {$profile != ""} {
+spawn unison $profile
+} else {
+spawn unison
+}
+expect {
+	"Reconciling changes\r
+\r
+" { send -- "L"
+		expect  "\[f\]"
+		log_user 1
+		send -- "q"
+		expect "qTerminated!\r"
+		log_user 0
+		expect eof }
+	eof { }
+}

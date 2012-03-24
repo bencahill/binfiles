@@ -1,0 +1,25 @@
+#!/bin/bash
+
+from=/dev/disk/by-label/BC_2T_ext
+to=/dev/disk/by-label/BC_1T_ext
+
+if [[ -e $from && -e $to ]]; then
+	if ! grep "$(readlink -fn $from)" /proc/mounts >/dev/null; then
+		from_unmounted="1"
+		udisks --mount $from
+	fi
+	if ! grep "$(readlink -fn $to)" /proc/mounts >/dev/null; then
+		to_unmounted="1"
+		udisks --mount $to
+	fi
+	rsync --exclude '/1tb' --exclude '/System Volume Information' --exclude '/RECYCLER' -ritP --delete /media/${from##*/}/ /media/${to##*/}/
+	if [[ $from_unmounted = "1" ]]; then
+		udisks --unmount $from
+	fi
+	if [[ $to_unmounted = "1" ]]; then
+		udisks --unmount $to
+	fi
+else
+	echo 'Drives not found!' >&2
+	exit 1
+fi

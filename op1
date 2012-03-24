@@ -1,0 +1,4 @@
+#/bin/bash
+
+export DISPLAY=:0.0
+xdotool key alt+w 1 >>/home/bencahill/xdotooltest 2>&1

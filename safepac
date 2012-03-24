@@ -1,0 +1,290 @@
+#!/bin/bash 
+#
+# safepac 0.2 - A slightly safer auto-updater for pacman
+# Copyright (C) 2008 Carol Alexandru <shapeshifter at archlinux dot us>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+
+
+#Check for prerequisites
+(( $UID != 0 )) && echo "You need to run this script as root" && exit 1
+if [[ ! $(command -v curl) ]] || [[ ! $(command -v links) ]]; then
+	printf "You need at least curl and links to use this! A working mail/MTA setup with a profile named safepac is optional for sending daily digests" && exit 1
+fi
+
+whitelist="/etc/safepac/whitelist"
+ignorelist="/etc/safepac/ignorelist"
+safepacrc="/etc/safepac/safepacrc"
+
+#Creating file structure if necessary
+if [[ ! -e $safepacrc ]]; then
+	echo "No configuration file /etc/safepac/safepacrc found."
+	if [[ ! -d /etc/safepac/ ]]; then
+		mkdir -p /etc/safepac/digest
+	fi
+	exit 1
+else
+	. $safepacrc
+fi
+
+if [[ ! -e $whitelist ]]; then
+	touch $whitelist
+	touch $ignorelist
+fi
+
+if [[ $1 == *s* ]]; then
+	exec >> /var/log/safepac.log
+fi
+if [[ $1 == *i* ]]; then
+	interactive=1
+fi
+if [[ $1 == *m* ]]; then
+	mail=1
+fi
+
+skipstring=""
+shifts=1
+
+while getopts ":mdln:W:I:hyu" option
+do
+	case $option in
+	m)
+		lastdigest="/etc/safepac/digest/$(date +%F).digest"
+		if [[ -e $lastdigest ]]; then
+			echo 'yesdigest'
+			if ((mail)); then
+				echo 'mailset'
+				printf " Sending today's digest... "
+				if ! /usr/bin/mail -s "safepac digest for $HOSTNAME on $(date +%F)" "$mailaddress" < "$lastdigest" ; then
+					printf "something went wrong. Please check mail.rc and msmtprc\n"
+				else					
+					printf "done!\n"
+				fi
+			fi
+		else
+			printf " No digest found for today\n"
+		fi
+	;;
+	d)
+		digest=1
+		currentdigest="/etc/safepac/digest/$(date +%F).digest"
+		if [[ ! -e $currentdigest ]]; then
+			echo " No digest file for today. Creating new digest."
+			printf "This is the daily digest for $HOSTNAME on $(date +%F)\nPlease check safepac.log regularly as well!\n\n" > $currentdigest
+		fi
+	;;
+	n)
+		((shifts++))
+		if [[ ! $OPTARG = *[^0-9]* ]]; then
+			if ((0 < OPTARG && OPTARG < 10)); then
+				many=$OPTARG
+			else
+				echo "You need to enter a number between 1 and 9"
+			fi
+		fi
+	;;
+	W)
+		case $1 in
+			*l)
+				echo "Packages currently whitelisted:"
+				cat $whitelist
+				exit
+			;;
+			*a)
+				shift $shifts
+				for package in "$@"; do
+					if [[ ! $(cat $whitelist | grep " $package ") ]]; then
+						echo " $package " >> $whitelist
+						echo "$package added to whitelist"
+					else
+						echo "$package already in whitelist"
+					fi
+				done
+				exit
+			;;
+			*r)
+				shift 1
+				for package in "$@"; do
+					if [[ $(cat $whitelist | grep " $package ") ]]; then
+						cat $whitelist | sed "/ ${package} /d" > $whitelist.tmp
+						mv $whitelist.tmp $whitelist
+						echo "$package removed from whitelist"
+					else
+						echo "$package not found in whitelist"
+					fi
+				done
+				exit
+			;;
+		esac
+	;;
+	I)
+		case $1 in
+			*l)
+				echo "News currently ignored:"
+				cat $ignorelist
+				exit
+			;;
+			*a)
+				shift $shifts
+				for entry in "$@"; do
+					if [[ ! $(cat $ignorelist | grep " $entry ") ]]; then
+						echo " $entry " >> $ignorelist
+						echo "RSS news entry $entry added to ignorelist"
+					else
+						echo "RSS news entry $entry already in ignorelist"
+					fi
+				done
+				exit
+			;;
+			*r)
+				shift 1
+				for entry in "$@"; do
+					if [[ $(cat $ignorelist | grep " $entry ") ]]; then
+						cat $ignorelist | sed "/ ${entry} /d" > $ignorelist.tmp
+						mv $ignorelist.tmp $ignorelist
+						echo "RSS news entry $entry removed from whitelist"
+					else
+						echo "RSS news entry $entry not found in whitelist"
+					fi
+				done
+				exit
+			;;
+		esac
+	;;
+	y)
+		pacman -Sy
+	;;
+	u)
+		((digest==1)) && printf "$(date +%H:%M) - ## safepac starting upgrade\n" >> $currentdigest
+		if [[ $(pacman -Qu | grep "no upgrades found") ]]; then
+			echo " No upgrades found"
+			((digest==1)) && printf "$(date +%H:%M) - No new upgrades\n" >> $currentdigest
+		else
+			echo ":: Checking out RSS news... "
+			#Putting all available packages in an array
+			updates=($(pacman -Qu | sed -e 's/Checking for package upgrades...//' -e 's/.*: //' -e 's/.*MB//' -e 's/-[0-9][-0-9a-zA-Z.]\+ / /g'))
+			((digest==1)) && echo "$(date +%H:%M) - new upgrades available:" >> $currentdigest
+			((digest==1)) && echo "$(date +%H:%M) - >>> ${updates[@]}" | tr '\n' ' ' >> $currentdigest
+			((digest==1)) && printf "\n" >> $currentdigest
+			
+			#Getting latest RSS feed number
+			latest=$(curl -s http://www.archlinux.org/feeds/news/ | grep "http://www.archlinux.org/news/[0-9]" | head -n 1 | sed -e 's/.*http:\/\/www.archlinux.org\/news\///' -e 's/\/.*//')
+			#Getting entries
+			i=0
+			while ((i<many)); do
+				if [[ $(cat $ignorelist | grep " $latest ") ]]; then
+					printf " ignoring news entry No. $latest\n"
+					((digest==1)) && echo "$(date +%H:%M) - Ignored news entry No. $latest" >> $currentdigest
+				else
+					printf " gettings news entry No. $latest... "
+					rssentry[$i]="NEWSENTRYSTART${latest}NEWSENTRYEND $(links -dump http://www.archlinux.org/news/$latest/ | sed -e '1,/\* Home/ s/.*//' -e '/Copyright (c) 2/,$ s/.*//')"
+						if [[ $(echo $rssentry[$i] | grep "Sorry, the page you've requested does not exist.") ]]; then
+							printf "entry does not exist, skipping\n"
+							rssentry[$i]="NEWSENTRYSTART${latest}NEWSENTRYEND"
+							((many++))
+						else
+							printf "\n"
+						fi
+				fi
+				latest=$((latest-1))
+				((i++))
+			done
+			
+			echo ":: Comparing available updates to RSS news"
+			for update in ${updates[@]}; do
+				printf " checking for $update... \n"
+				found=0
+				for entry in "${rssentry[@]}"; do
+					if [[ $(cat $whitelist | grep $update) ]]; then
+						if [[ $(echo "$entry" | grep -e " $update" -e "${update}-") ]]; then
+							white="$(echo "$entry" | sed -e '2,/,$/d' -e 's/.*NEWSENTRYSTART//' -e 's/NEWSENTRYEND.*//')"
+							printf "  --> Found \"$update\" in news entry http://www.archlinux.org/news/$white/ \n"
+							printf "  --> Package is whitelisted.\n"
+							((digest==1)) && echo "$(date +%H:%M) - News for \"$update\" found in entry http://www.archlinux.org/news/$white/" >> $currentdigest
+							((digest==1)) && echo "$(date +%H:%M) - Package is whitelisted." >> $currentdigest
+						fi
+					else
+						if [[ $(echo "$entry" | grep -e " $update" -e "${update}-") ]]; then
+							found="$(echo "$entry" | head -n 1 | sed -e 's/.*NEWSENTRYSTART//' -e 's/NEWSENTRYEND.*//')"
+							printf "  --> Found \"$update\" in news entry http://www.archlinux.org/news/$found/ \n"
+							printf "  --> Skipping package upon upgrade!\n"
+							((digest==1)) && echo "$(date +%H:%M) - News for \"$update\" found in entry http://www.archlinux.org/news/$found/" >> $currentdigest
+							((digest==1)) && echo "$(date +%H:%M) - Skipping package upon upgrade." >> $currentdigest
+							skipstring="$skipstring$update,"
+						fi
+					fi
+				done					
+			done
+
+			#Done checking. Starting upgrade
+			((digest==1)) && echo "$(date +%H:%M) - # Ran pacman upgrade" >> $currentdigest
+			if ((interactive==1)); then
+				pacman -Su --ignore="$skipstring" | tee >(line=$(grep -i -e "note" -e "pacnew" -e "error" -e "important" -e "warning" -e "exists")
+											if [[ $line != "" ]]; then
+											((digest==1)) && echo "$(date +%H:%M) - Critical lines found in pacman output:" >> $currentdigest
+											timestamp="$(date +%H:%M) - >>> "
+											((digest==1)) && echo "$line" | sed "s/^/$timestamp/" >> $currentdigest
+											((digest==1)) && echo "$(date +%H:%M) - Please inspect safepac.log for more information" >> $currentdigest
+											fi)
+			else
+				pacman -Su --ignore="$skipstring" --noconfirm | tee >(line=$(grep -i -e "note" -e "pacnew" -e "error" -e "important" -e "warning" -e "exists")
+											if [[ $line != "" ]]; then
+											((digest==1)) && echo "$(date +%H:%M) - Critical lines found in pacman output:" >> $currentdigest
+											timestamp="$(date +%H:%M) - >>> "
+											((digest==1)) && echo "$line" | sed "s/^/$timestamp/" >> $currentdigest
+											((digest==1)) && echo "$(date +%H:%M) - Please inspect safepac.log for more information" >> $currentdigest
+											fi)
+			fi
+		fi
+		((digest==1)) && sleep 2 && printf "$(date +%H:%M) - ## safepac upgrade finished\n\n" >> $currentdigest
+		exit
+	;;	
+	h)
+		echo 'Usage:
+safepac -h | -{i|s}mdyun [1-9] | -W{l|a|r} [packages] | -I{l|a|r} [xxx]
+
+The following options can be used. When combining them, you need to use
+them in the same order as displayed here. Look at the examples as well.
+
+	-h		show this help
+	
+	-i		interactive mode
+	-s		silent (output to /var/log/safepac.log instead stdout)
+	-m		mail yesterdays digest if past midnight.
+	-d		create/append to digest file
+	-y		do pacman -Sy first
+	-u		do system upgrade 
+	-n  [1-9]	specify number of latest RSS news to check
+
+	-Wl		list currently whitelisted packages
+	-Wa [packages]	add packages to whitelist
+	-Wr [packages]	remove a package from whitelist
+
+	-Il		list currently ignored news entries
+	-Ia [xxx]	add news entries to ignore list
+	-Ir [xxx]	remove news entries from ignore list
+
+Configruation:
+safepac will create a configuration file called safepacrc in ~/.config/safepac/ as well as the whitelist and the ignorelist. If you want to receive a daily digest of safepac, you need to install an MTA and an smtp client like msmtp. Please turn to the docs and forums on how to do that.
+
+Examples:
+safepac -smdyu
+-> Run safepac silently and with "--noconfirm" on pacman, with mailing and digestion enabled, update database and do a system upgrade. This combination is most common for use as a cronjob, where digestion with mailing is desired
+safepac -Wa man yes
+-> Add "man" and "yes" to the whitelist, so that they will always be installed, even if these words appear in the news. Use this in cases where an uncritical package turns up as a false positive too often.
+safepac -n 8 -yu
+-> Scan the last 8 news entries and do a system upgrade. This could be an example for a manual run. Output will go to the terminal.'
+		exit
+	;;
+esac
+done
+
+[[ $1 == "" ]] && $0 -h

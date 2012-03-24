@@ -1,0 +1,3 @@
+#!/bin/bash
+
+urxvtc -e bash -c 'mplayer music/Cuthroat\ Island/16\ Track\ 16.mp3'

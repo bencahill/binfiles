@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ $1 = "" ]]; then
+    WINEPREFIX="/home/bencahill/.wine_fw8/" wine "C:\Program Files\Macromedia\Fireworks 8\Fireworks.exe"
+else
+    WINEPREFIX="/home/bencahill/.wine_fw8/" wine start /ProgIDOpen Fireworks.Doc "$1"
+fi

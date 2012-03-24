@@ -1,0 +1,37 @@
+#!/bin/bash
+
+### Unreliable for whatever reason
+#while read dev; do
+#  udisks --mount "/dev/disk/by-label/$dev" >/dev/null
+#done < <(blkid -o list|tail -n+3|grep -v '/dev/sda'|grep '(not mounted)'|awk '{print$3}'|dmenu -i)
+
+if [[ "$1" = "-u" ]]; then
+	unmount="1"
+else
+	mount="1"
+fi
+
+for i in /dev/disk/by-label/*; do
+  file="${i##*/}"
+  dev="$(readlink -fn "$i")"
+  if [[ $mount = "1" ]]; then
+	  if [[ "$dev" != '/dev/sr0' ]] && ! grep "$dev" /proc/mounts >/dev/null; then
+		mntlist+=("$file")
+	  fi
+  elif [[ $unmount = "1" ]]; then
+	  if [[ "$dev" != '/dev/sr0' ]] && grep "$dev" /proc/mounts >/dev/null; then
+		mntlist+=("$file")
+	  fi
+  fi
+done
+
+dev="$(printf "%s\n" "${mntlist[@]}"|dmenu -i -nb '#000000' -nf '#cccccc' -sb '#444444' -sf '#cccccc')"
+
+if [[ -n "$dev" ]]; then
+  if [[ $mount = "1" ]]; then
+	  udisks --mount "/dev/disk/by-label/$dev" >/dev/null
+  elif [[ $unmount = "1" ]]; then
+	  udisks --unmount "/dev/disk/by-label/$dev" >/dev/null
+  fi
+  conkyreload
+fi

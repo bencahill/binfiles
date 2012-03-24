@@ -1,0 +1,11 @@
+#!/bin/bash
+
+shopt -s dotglob
+
+du -hsc "$1"* 2>/dev/null | sort -h
+
+#if [[ $1 = "" ]]; then
+#    du -ks * 2>/dev/null | sort -n | cut -f2 | xargs -d '\n' du -shc 2>/dev/null
+#else
+#    du -ks "$1"* 2>/dev/null | sort -n | cut -f2 | xargs -d '\n' du -shc 2>/dev/null
+#fi

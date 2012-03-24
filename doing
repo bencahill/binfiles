@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export DISPLAY=:0.0
+
+active="$(xdotool getactivewindow 2>/dev/null)"
+[[ -n "$active" ]] &&
+[[ "$(xwininfo -id "$active")" == *Opera* ]] &&
+[[ "$(xprintidle)" -le 15000 ]] &&
+opera /home/bencahill/doing.html >/dev/null

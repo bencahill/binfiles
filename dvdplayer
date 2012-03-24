@@ -1,0 +1,22 @@
+#!/bin/bash
+
+c=0
+titles=([0]="Menu")
+
+while read -r i; do
+	if [[ -n "$i" ]]; then
+		i="${i#Title: }"
+		c=$((c+1))
+		titles[$c]="${i%.*Chapters:*}"
+	fi
+done < <(lsdvd /dev/sr0 2>/dev/null|egrep -v 'libdvdread:|Disc Title:|Longest track:')
+
+title="$(printf "%s\n" "${titles[@]}"|dmenu -i -nb '#000000' -nf '#cccccc' -sb '#444444' -sf '#cccccc')"
+
+[[ $? = "0" ]] || exit 1
+
+if [[ "$title" = "Menu" ]]; then arg="dvdnav://";
+else arg="dvd://$(printf "%d\n" "${title%,*Length:*}")";
+fi
+
+mplayer "$arg" -dvd-device /dev/sr0

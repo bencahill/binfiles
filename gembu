@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo -e '\E[32m'"\033[1mStarting www/\033[0m"
+sudo rsync -ritPl /mauto/jpc/gem/www/ /var/www/
+echo -e '\E[32m'"\033[1mStarting dbs/\033[0m"
+rsync -ritP /mauto/jpc/gem/backups/dbs/ dbs/

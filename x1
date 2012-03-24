@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# killall -q xmobar
+killall -q dzen2
+killall -q conky
+killall -q tail
+xrandr --output VGA-1 --off
+bashrun --exit
+imlibsetroot march-12-1280.jpg &
+# [[ -e /home/bencahill/.vol1 ]] && rm /home/bencahill/.vol1
+# [[ -e /home/bencahill/.vol ]] && rm /home/bencahill/.vol
+# mkfifo /home/bencahill/.vol
+# volupd &
+# rm /home/bencahill/.xmb && mkfifo /home/bencahill/.xmb
+tail -f /home/bencahill/.xmb | dzen2 -ta l -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 &
+conky | dzen2 -ta r -x 640 -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 &

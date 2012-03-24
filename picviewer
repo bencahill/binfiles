@@ -1,0 +1,4 @@
+#!/bin/bash
+
+xdotool key super+space super+b
+WINEPREFIX=/home/bencahill/.wine_picasa/ wine "C:\\Program Files (x86)\\Google\\Picasa3\\PicasaPhotoViewer.exe" "$1"

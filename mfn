@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mplayer -noconsolecontrols -fs "$1"

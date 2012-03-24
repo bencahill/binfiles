@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo -e '\E[32m'"\033[1mStarting home/\033[0m"
+rsync -riPt /home/bencahill/ /mauto/jpc/bcbak/home/
+echo -e '\E[32m'"\033[1mStarting home to 2T/\033[0m"
+rsync --exclude '/.thumbnails' -riPt --delete /home/bencahill/ /media/BC_2T_ext/bcbak/home/
+echo -e '\E[32m'"\033[1mStarting etc/\033[0m"
+rsync -riPt /etc/ /mauto/jpc/bcbak/etc/
+echo -e '\E[32m'"\033[1mStarting etc to 2T/\033[0m"
+rsync -riPt /etc/ --delete /media/BC_2T_ext/bcbak/etc/
+echo -e '\E[32m'"\033[1mStarting pacman/\033[0m"
+rsync -riPt /var/lib/pacman/local/ /mauto/jpc/bcbak/pacman/
+echo -e '\E[32m'"\033[1mStarting pacman to 2T/\033[0m"
+rsync -riPt --delete /var/lib/pacman/local/ /media/BC_2T_ext/bcbak/pacman/

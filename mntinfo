@@ -1,0 +1,13 @@
+#!/bin/bash
+
+while read dev; do
+  dev=${dev#/m*/}
+  dev=${dev#BC_}
+  dev=${dev%_ext}
+  mnt=$mnt,$dev
+done < <(findmnt -rno TARGET|grep -E '/media/|/mauto/')
+
+if [[ $mnt != "" ]]
+then
+echo -n "${mnt#,}"
+fi

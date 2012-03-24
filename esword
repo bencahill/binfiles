@@ -1,0 +1,3 @@
+#!/bin/bash
+
+WINEPREFIX=/media/BC_2T_ext/.wine_esword/ wine "C:\Program Files\e-Sword\e-Sword.exe"

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ $1 = "" ]]; then
+    WINEPREFIX="/home/bencahill/.wine_office/" wine "C:\\Program Files\\Microsoft Office\\Office\\EXCEL.EXE"
+else
+    WINEPREFIX="/home/bencahill/.wine_office/" wine start /ProgIDOpen Excel.Sheet.8 "$1"
+    #WINEPREFIX=/home/bencahill/.wine_office/ wine "C:\\Program Files\\Microsoft Office\\Office\\EXCEL.EXE" $1 # previous doesn't work with filenames containing spaces
+fi

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+. "$(dirname $0)/pwd/vnc"
+
+if [[ -n "$1" ]]; then
+	if [[ "$1" = "at" ]]; then args="at2600::5600 -password $pass -dsmplugin MSRC4Plugin.dsm"
+	elif [[ "$1" = "gp" ]]; then args="gp1400::5800 -password $pass -dsmplugin MSRC4Plugin.dsm"
+	fi
+fi
+
+wine "UltraVNCViewer Portable/UltraVNCViewerPortable.exe" $args

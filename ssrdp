@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. "$(dirname $0)/pwd/ssrdp"
+
+rdesktop -Pzg 1024x768 -u "$user" -p "$pass" "$host"

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo rc.d stop mysqld
+sudo rc.d stop httpd

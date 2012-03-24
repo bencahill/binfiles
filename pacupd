@@ -1,0 +1,17 @@
+#!/bin/bash
+
+checkupdates|wc -l|sed 's/^0$//'|tr -d '\n'
+
+# if [[ ! -f /var/lib/pacman/db.lck ]]
+#    then sudo pacSy >>/home/bencahill/testerc #/dev/null 2>&1
+# else
+#    while [[ -f /var/lib/pacman/db.lck ]]
+#        do sleep .5
+#    done
+# fi
+# 
+# updnum=$(($(pacman -Qu|wc -l)-2))
+# 
+# if [[ $updnum > 0 ]]
+#    then echo -n $updnum
+# fi

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd /home/bencahill/snote/
+
+snotetitle="$(zenity --entry --text='Note title:' --title='New note title')"
+
+if [[ ! -e "$snotetitle.txt" ]]
+    then touch "$snotetitle.txt"
+    echo "$(xsel -po)" >"$snotetitle.txt"
+    echo >>"$snotetitle.txt"
+    if [[ -z "$1" ]]
+        then echo "$(xsel -bo)" >>"$snotetitle.txt"
+    fi
+    else zenity --error --text='Note already exists!' --title='Note already exists!'
+fi

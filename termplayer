@@ -1,0 +1,4 @@
+#!/bin/bash
+## helper for pcmanfm
+
+urxvtc -e bash -c "mplayer '$1'"

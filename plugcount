@@ -1,0 +1,21 @@
+#!/usr/bin/php
+<?php
+
+include 'pwd/plugcount.php';
+
+foreach($dbs as $db) {
+
+  $plugins = shell_exec('ssh -p'.$port.' '.$host.' "mysql -uroot -p -s -e \'select option_value from wp_options where option_name=\"active_plugins\"\' '.$db.'"');
+  $plugins = unserialize($plugins);
+
+  foreach( $plugins as $plugin ) {
+    if(strpos($plugin,'/')) {
+      echo ucwords(str_replace('-',' ',dirname($plugin)))."\n";
+    }
+    else {
+      echo ucwords(str_replace('-',' ',str_replace('.php','',$plugin)))."\n";
+    }
+  }
+
+}
+?>

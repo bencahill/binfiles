@@ -1,0 +1,3 @@
+#!/bin/bash
+
+amixer -q set PCM 1.5dB-

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+[[ -e ./gmail-backup ]] && { echo "./gmail-backup exists! Please delete and run again." >&2; exit 1; }
+
+host google.com >/dev/null || { echo "Not connected to the internet!" >&2; exit 1; }
+
+inarray() { local n=$1 h; shift; for h; do [[ $n = "$h" ]] && return; done; return 1; } # Usage: inarray "$value" "${array[@]}"
+
+for rc in ~/.getmail/rc/getmailrc-*; do
+	email="$(grep username "$rc")"; email="${email#username = }"
+	user="${email%%@*}"
+	pass="$(grep password "$rc")"; pass="${pass#password = }"
+	imap_tools/list_imap_folders.pl -S "imap.gmail.com:993/$email/$pass"|grep -v '^\[Gmail\]$' >./gmail-backup
+	mapfile -t imapfolders <./gmail-backup
+	[[ -d "/media/BC_320G/gmail/$user" ]] || mkdir "/media/BC_320G/gmail/$user"
+	for folder in /media/BC_320G/gmail/"$user"/*; do
+		if ! inarray "$folder" "${imapfolders[@]}"; then
+			echo rm -r "$folder"
+		fi
+	done
+	for label in "${imapfolders[@]}"; do
+		echo -n "Backing up $user/$label "
+		dir="/media/BC_320G/gmail/$user/$label"
+		[[ -d "$dir" ]] || mkdir -p "$dir"/{cur,new,tmp}
+		sed -i 's#mailboxes = (.*)#mailboxes = ("'"$label"'",)#' "$rc"
+		sed -i 's#path = /media/BC_320G/gmail/.*#path = '"$dir"'/#' "$rc"
+		getmail -r "$rc" |grep -v 'Charles Cazabon\|SimpleIMAP\|getmail version'
+	done
+	sed -i 's#mailboxes = (.*)#mailboxes = (none)#' "$rc"
+	sed -i 's#path = /media/BC_320G/gmail/.*#path = /media/BC_320G/gmail/none/#' "$rc"
+done
+
+rm gmail-backup

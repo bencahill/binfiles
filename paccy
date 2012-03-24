@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# PacNews
+#
+# pbrisbin 2009
+#
+###
+
+message() {
+  echo ""
+  echo "pacnews is designed to streamline dealing with .pacnew files."
+  echo ""
+  echo "pacnews must be run as root, and will optionally accept a"
+  echo "directory on which to act, otherwise /etc will be searched by"
+  echo "default."
+  echo ""
+  echo "all *.pacnew files found will be presented to you one by one; "
+  echo "you'll have the option of viewing/editing your current config"
+  echo "file side by side with the pacnew file through vimdiff, then"
+  echo "you can remove the pacnew file, replace you're existing"
+  echo "config file with the .pacnew file, or do nothing."
+  echo ""
+  echo "answering anything other than \"y\" to the options will"
+  echo "eventually bring you back without changing your system in any"
+  echo "way."
+  echo ""
+  exit 1
+}
+
+errorout(){
+  echo "==> ERROR: $1"
+  exit 1
+}
+
+[ "$(whoami)" != "root" ] && errorout "You must be root"
+
+which vimdiff >/dev/null 2>&1 || errorout "You need vimdiff installed"
+
+if [ -z $1 ]; then
+  DIR="/etc"
+elif [ "$1" = "--help" ]; then
+  message
+else
+  [ -d $1 ] || errorout "$1 is not a directory, try --help"
+  DIR="$1"
+fi
+
+[ "$(find $DIR -name '*.pacnew')" = "" ] && {
+  echo "No .pacnew files found."
+  exit 0
+}
+
+for file in $(find $DIR -name '*.pacnew'); do
+  current="$(echo $file | sed 's/\.pacnew//g')"
+  echo -n ":: $file found, view differences? (Y/n) " && read A
+  if [ "$A" = "y" ]; then
+    vimdiff $current $file
+    echo -n ":: Remove $file? (Y/n) " && read A
+    if [ "$A" = "y" ]; then
+      rm $file || errorout "could not remove the pacnew file"
+      echo ">> $file was removed"
+    else
+      echo -n ":: Replace $current with $file? (Y/n) " && read A
+      if [ "$A" = "y" ]; then
+        cp $current $current.pacsave || errorout "could not back up existing config"
+        echo ">> $current saved as $current.pacsave"
+        mv $file $current || errorout "could not your config file"
+        echo ">> $current replaced by $file"
+      fi
+    fi
+  else
+    echo ">> Skipping $file..."
+  fi
+done
+
+exit 0

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for i in *; do
+if [[ -f "/media/20B6-50EA/MUSIC/converted/$i" ]]; then
+  echo -n "$i"
+  if [[ "$(md5sum "/media/20B6-50EA/MUSIC/converted/$i"|cut -f1 -d' ')" == "$(md5sum "$i"|cut -f1 -d' ')" ]]; then
+    echo ' yes';
+  else
+    echo ' no';
+  fi;
+fi;
+done

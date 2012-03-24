@@ -1,0 +1,34 @@
+#!/bin/bash
+
+picdir="/media/BC_2T_ext/1tb/Data/Media/Pictures"
+
+[[ ! -d "$picdir" && -z "$1" ]] && exit 1
+[[ -n "$1" ]] && picdir="$1"
+
+tmp="/tmp/picrenames"
+
+picrenamer|tee $tmp|less -K &&
+	{
+	picmover $tmp
+
+	declare -A rfiles
+	while read -r line; do
+		file="${line##*/}"
+		date="${file:0:6}"
+		rfiles["$picdir/$date/"]+="$file "
+		# echo mv -i "$file" "$picdir/$date/$file"
+		# mv -i "$file" "$picdir/$date/$file"
+	done <$tmp
+	for dir in "${!rfiles[@]}"; do
+		echo "rsync -ritP --remove-source-files --ignore-existing ${rfiles[$dir]} $dir"
+	done|less -K &&
+		{
+		for dir in "${!rfiles[@]}"; do
+			rsync -ritP --remove-source-files --ignore-existing ${rfiles[$dir]} "$dir"
+		done
+		}
+	}
+
+rm $tmp
+
+ls # to show any missed files

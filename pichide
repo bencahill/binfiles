@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [[ "$(xwininfo -id $(xdotool getactivewindow))" == *Picasa* ]]; then
+  sleep .1; xdotool key alt+p h
+fi

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "# Session started $(date '+%Y-%m-%d %T')"
+
+while true; do
+newwin="$(xdotool getactivewindow getwindowname)"
+if [[ "$newwin" != "$oldwin" ]]; then
+echo "$(date '+[%Y-%m-%d %T]') $(xdotool getactivewindow getwindowname)"
+oldwin="$(xdotool getactivewindow getwindowname)"
+fi
+sleep .5
+done

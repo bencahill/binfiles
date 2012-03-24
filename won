@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo rc.d start mysqld
+sudo rc.d start httpd

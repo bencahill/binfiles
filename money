@@ -1,0 +1,13 @@
+#!/bin/bash
+
+mkfifo mnyfifo || exit;
+trap 'rm mnyfifo' EXIT
+if [[ $1 = "" ]]; then
+WINEPREFIX=/home/bencahill/.wine_mnys/ stdbuf -oL wine "C:\\Program Files\\Microsoft Money Plus\\MNYCoreFiles\\msmoney.exe" > mnyfifo 2>&1 &
+pid=$!
+while read -r line; do [[ $line = "fixme:wininet:InternetSetOptionW Option INTERNET_OPTION_RESET_URLCACHE_SESSION: STUB" ]] && kill $pid; done < mnyfifo
+else
+WINEPREFIX=/home/bencahill/.wine_mnys/ stdbuf -oL wine start /ProgIDOpen Money.Document "$1" > mnyfifo 2>&1 &
+#    WINEPREFIX="/home/bencahill/.wine_office/" wine start /ProgIDOpen Word.Document.8 "$1"
+while read -r line; do [[ $line = "fixme:wininet:InternetSetOptionW Option INTERNET_OPTION_RESET_URLCACHE_SESSION: STUB" ]] && killall -I msmoney.exe; done < mnyfifo
+fi
