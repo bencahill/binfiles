@@ -1,17 +1,9 @@
 #!/bin/bash
 
-ext=/dev/disk/by-label/BC_320G
+. "$(dirname $0)/inc/auto_mnt"
 
-if [[ -e $ext ]]; then
-	if ! grep "$(readlink -fn $ext)" /proc/mounts >/dev/null; then
-		unmounted="1"
-		udisks --mount $ext >/dev/null
-	fi
-	rsnapshot "$1"
-	if [[ $unmounted = "1" ]]; then
-		udisks --unmount $ext
-	fi
-else
-	echo "BC_320G not available!" >&2
-	exit 1
-fi
+auto_mnt BC_320G || exit 1
+
+rsnapshot "$1"
+
+auto_unmnt

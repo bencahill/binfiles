@@ -1,27 +1,17 @@
 #!/bin/bash
 
-ext=/dev/disk/by-label/BC_320G
+. "$(dirname $0)/inc/auto_mnt"
 
-if [[ -e $ext ]]; then
-	if ! grep "$(readlink -fn $ext)" /proc/mounts >/dev/null; then
-		unmounted="1"
-		udisks --mount $ext >/dev/null
-	fi
+auto_mnt BC_320G || exit 1
 
-	inarray() { local n=$1 h; shift; for h; do [[ $n = "$h" ]] && return; done; return 1; } # Usage: inarray "$value" "${array[@]}"
+inarray() { local n=$1 h; shift; for h; do [[ $n = "$h" ]] && return; done; return 1; } # Usage: inarray "$value" "${array[@]}"
 
-	. "$(dirname $0)/pwd/gmail-backup" # pull in credentials, associative array 'accounts' and var 'pwd2'
+. "$(dirname $0)/pwd/gmail-backup" # pull in credentials, associative array 'accounts' and var 'pwd2'
 
-	for email in "${!accounts[@]}"; do
-		user="${email%%@*}"
-		pass="${accounts["$email"]}"
-		imapsync --host1 imap.gmail.com --ssl1 --authmech1 LOGIN --user1 "$email" --password1 "$pass" --host2 localhost --user2 "$user" --password2 "$pwd2" --useheader="X-Gmail-Received" --useheader 'Message-Id' --delete2
-	done
+for email in "${!accounts[@]}"; do
+	user="${email%%@*}"
+	pass="${accounts["$email"]}"
+	imapsync --host1 imap.gmail.com --ssl1 --authmech1 LOGIN --user1 "$email" --password1 "$pass" --host2 localhost --user2 "$user" --password2 "$pwd2" --useheader="X-Gmail-Received" --useheader 'Message-Id' --delete2
+done
 
-	if [[ $unmounted = "1" ]]; then
-		udisks --unmount $ext
-	fi
-else
-	echo "BC_320G not available!" >&2
-	exit 1
-fi
+auto_unmnt

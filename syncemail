@@ -1,27 +1,22 @@
 #!/bin/bash
 
 . "$(dirname $0)/pwd/syncemail"
+. "$(dirname $0)/inc/auto_mnt"
 
-tb1="$(/home/bencahill/bin/synccheck|dos2unix|head -n-2|tail -n +2)"
+auto_mnt BC_2T_ext
+
+tb1="$(~/bin/synccheck|dos2unix|head -n-2|tail -n +2)"
 [[ -n "$tb1" ]] && email+="New files on 1tb:"$'\n'"$tb1"$'\n\n'
-pic2="$(/home/bencahill/bin/synccheck pic2|dos2unix|head -n-2|tail -n +2)"
+pic2="$(~/bin/synccheck pic2|dos2unix|head -n-2|tail -n +2)"
 [[ -n "$pic2" ]] && email+="New files in Picasa2 folders:"$'\n'"$pic2"$'\n\n'
 
-ext=/dev/disk/by-label/BC_1T_ext
+auto_unmnt
 
-if [[ -e $ext ]]; then
-	if ! grep "$(readlink -fn $ext)" /proc/mounts >/dev/null; then
-		unmounted="1"
-		udisks --mount $ext >/dev/null
-	fi
-	tb2="$(/home/bencahill/bin/synccheck 2tb|dos2unix|head -n-2|tail -n +2)"
-	[[ -n "$tb2" ]] && email+="New files on 2tb:"$'\n'"$tb2"$'\n\n'
-	if [[ $unmounted = "1" ]]; then
-		udisks --unmount $ext
-	fi
-else
-	echo "BC_1T_ext not available!" >&2
-fi
+auto_mnt BC_1T_ext BC_2T_ext
+
+tb2="$(~/bin/synccheck 2tbslow|dos2unix|head -n-2|tail -n +2)"
+
+auto_unmnt
 
 if [[ -n "$email" ]]; then
 	echo "$email"|mail -s "New files to sync" "$address"

@@ -1,0 +1,24 @@
+auto_mnt() {
+	for dev; do
+		dev=/dev/disk/by-label/"$dev"
+		if [[ -e "$dev" ]]; then
+			if ! grep "$(readlink -fn "$dev")" /proc/mounts >/dev/null; then
+				to_unmnt+=("$dev")
+				udisks --mount "$dev" >/dev/null
+			fi
+		else
+			echo "$dev not connected!" >&2
+			# [[ "${#to_unmnt[@]}" > 0 ]] && sleep 1
+			auto_unmnt
+			( exit 1; )
+		fi
+	done
+}
+
+auto_unmnt() {
+	sleep 1
+	for dev in "${to_unmnt[@]}"; do
+		udisks --unmount "$dev"
+	done
+	unset to_unmnt
+}
