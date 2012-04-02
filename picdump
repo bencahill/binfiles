@@ -1,5 +1,9 @@
 #!/bin/bash
 
+. "$(dirname $0)/inc/auto_mnt"
+
+auto_mnt BC_2T_ext || exit 1
+
 picdir="/media/BC_2T_ext/1tb/Data/Media/Pictures"
 
 [[ ! -d "$picdir" && -z "$1" ]] && exit 1
@@ -32,3 +36,5 @@ picrenamer|tee $tmp|less -K &&
 rm $tmp
 
 ls # to show any missed files
+
+auto_unmnt
