@@ -1,3 +1,5 @@
 #!/bin/bash
 
+. ~/.bashrc
+
 WINEPREFIX=/home/bencahill/.wine_picasa/ wine "C:\Program Files (x86)\Google\Picasa3\Picasa3.exe"
