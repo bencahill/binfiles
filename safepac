@@ -59,9 +59,7 @@ do
 	m)
 		lastdigest="/etc/safepac/digest/$(date +%F).digest"
 		if [[ -e $lastdigest ]]; then
-			echo 'yesdigest'
 			if ((mail)); then
-				echo 'mailset'
 				printf " Sending today's digest... "
 				if ! /usr/bin/mail -s "safepac digest for $HOSTNAME on $(date +%F)" "$mailaddress" < "$lastdigest" ; then
 					printf "something went wrong. Please check mail.rc and msmtprc\n"
@@ -185,7 +183,7 @@ do
 					((digest==1)) && echo "$(date +%H:%M) - Ignored news entry No. $latest" >> $currentdigest
 				else
 					printf " gettings news entry No. $latest... "
-					rssentry[$i]="NEWSENTRYSTART${latest}NEWSENTRYEND $(links -dump http://www.archlinux.org/news/$latest/ | sed -e '1,/\* Home/ s/.*//' -e '/Copyright (c) 2/,$ s/.*//')"
+					#rssentry[$i]="NEWSENTRYSTART${latest}NEWSENTRYEND $(links -dump http://www.archlinux.org/news/$latest/ | sed -e '1,/\* Home/ s/.*//' -e '/Copyright (c) 2/,$ s/.*//')"
 						if [[ $(echo $rssentry[$i] | grep "Sorry, the page you've requested does not exist.") ]]; then
 							printf "entry does not exist, skipping\n"
 							rssentry[$i]="NEWSENTRYSTART${latest}NEWSENTRYEND"
