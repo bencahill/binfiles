@@ -14,7 +14,7 @@ auto_unmnt
 
 auto_mnt BC_1T_ext BC_2T_ext
 
-tb2="$(~/bin/synccheck 2tbslow|dos2unix|head -n-2|tail -n +2)"
+tb2="$(~/bin/synccheck 2tb|dos2unix|head -n-2|tail -n +2)"
 
 auto_unmnt
 
