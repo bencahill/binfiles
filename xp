@@ -1,0 +1,26 @@
+#!/bin/bash
+
+killall -q dzen2
+killall -q conky
+killall -q tail
+bashrun --exit
+
+xrandr --output VGA-1 --off
+xrandr --newmode "1280x800@60" 83.91 1280 1312 1624 1656 800 816 824 841
+xrandr --addmode LVDS-1 "1280x800@60"
+xrandr --output LVDS-1 --mode 1280x800@60
+
+if [[ "$(xrandr | grep "VGA-1 connected")" ]]
+then 
+	xrandr --output VGA-1 --mode 1280x1024 --rate 75.0 --left-of LVDS-1
+	xdotool key super+e
+	xdotool key super+1
+	imlibsetroot "$(date +%B|tr [A-Z] [a-z])"-12-both.jpg &
+	tail -f /home/bencahill/.xmb | tee >(dzen2 -ta l -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 -xs 1) | dzen2 -ta l -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 -xs 2 &
+	conky | dzen2 -ta r -x 640 -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 -xs 1 &
+	conky | dzen2 -ta r -x 640 -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 -xs 2 &
+else
+	imlibsetroot "$(date +%B|tr [A-Z] [a-z])"-12-1280.jpg &
+	tail -f /home/bencahill/.xmb | dzen2 -ta l -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 &
+	conky | dzen2 -ta r -x 640 -w 640 -fn "Terminus-6" -h 16 -bg gray20 -fg gray80 &
+fi
