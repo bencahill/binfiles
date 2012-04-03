@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ~/.bashrc
+
 ~/bin/readcookies ~/.opera/cookies4.dat | awk "/\t\t\t.*'tracks'/,/end of domain record/" | grep 0x10 | grep -v __utm. | perl -pe "s/.*'0x10'.*?b'(.*?)'\).*'0x11'.*?b'(.*?)'\).*/tracks.tra.in\tFALSE\t\/\tFALSE\t0\t\1\t\2/" >~/tracks_bu/opcookies
 
 for i in yaml_export csv_actions csv_notes xml_export; do
