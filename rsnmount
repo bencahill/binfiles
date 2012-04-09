@@ -3,6 +3,7 @@
 . "$(dirname $0)/inc/auto_mnt"
 
 auto_mnt BC_320G || exit 1
+auto_mnt BC_2T_ext
 
 rsnapshot "$1"
 
