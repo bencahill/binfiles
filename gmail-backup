@@ -11,7 +11,7 @@ inarray() { local n=$1 h; shift; for h; do [[ $n = "$h" ]] && return; done; retu
 for email in "${!accounts[@]}"; do
 	user="${email%%@*}"
 	pass="${accounts["$email"]}"
-	imapsync --host1 imap.gmail.com --ssl1 --authmech1 LOGIN --user1 "$email" --password1 "$pass" --host2 localhost --user2 "$user" --password2 "$pwd2" --useheader="X-Gmail-Received" --useheader 'Message-Id' --delete2
+	timeout 10m imapsync --host1 imap.gmail.com --ssl1 --authmech1 LOGIN --user1 "$email" --password1 "$pass" --host2 localhost --user2 "$user" --password2 "$pwd2" --useheader="X-Gmail-Received" --useheader 'Message-Id' --delete2
 done
 
 auto_unmnt
