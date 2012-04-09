@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh -YC nathan 'killall x2x; x2x -from :0.0 -nomouse'
