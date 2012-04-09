@@ -10,11 +10,10 @@ tb1="$(~/bin/synccheck|dos2unix|head -n-2|tail -n +2)"
 pic2="$(~/bin/synccheck pic2|dos2unix|head -n-2|tail -n +2)"
 [[ -n "$pic2" ]] && email+="New files in Picasa2 folders:"$'\n'"$pic2"$'\n\n'
 
-auto_unmnt
-
-auto_mnt BC_1T_ext BC_2T_ext
+auto_mnt BC_1T_ext
 
 tb2="$(~/bin/synccheck 2tb|dos2unix|head -n-2|tail -n +2)"
+[[ -n "$tb2" ]] && email+="New files on 2tb:"$'\n'"$tb2"$'\n\n'
 
 auto_unmnt
 
