@@ -1,3 +1,3 @@
 #!/bin/bash
 
-LD_PRELOAD=/home/bencahill/fullscreenhack-0.2/libfullscreenhack.so /usr/bin/opera --nomail "$1"
+LD_PRELOAD=/home/bencahill/fullscreenhack-0.2/libfullscreenhack.so /usr/bin/opera "$1"
