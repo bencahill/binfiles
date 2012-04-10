@@ -60,7 +60,7 @@ do
 		lastdigest="/etc/safepac/digest/$(date +%F).digest"
 		if [[ -e $lastdigest ]]; then
 			if ((mail)); then
-				printf " Sending today's digest... "
+				# printf " Sending today's digest... "
 				if ! /usr/bin/mail -s "safepac digest for $HOSTNAME on $(date +%F)" "$mailaddress" < "$lastdigest" ; then
 					printf "something went wrong. Please check mail.rc and msmtprc\n"
 				else					
