@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [[ $(findmnt -rno TARGET|grep -E '/media/|/mauto/') != "" ]]
+[[ "$1" = "-nomedia" ]] || add='/media/|'
+
+if [[ $(findmnt -rno TARGET|grep -E $add'/mauto/') != "" ]]
 then
   while read dev; do
   sudo umount "$dev" && echo -e '\E[32m'"\033[1m$dev\033[0m succesfully umounted!"
