@@ -1,10 +1,10 @@
 #!/bin/bash
 
-[[ ! -d /media/BC_2T_ext/ ]] && { echo "BC_2T_ext not mounted!" >&2; exit 1; }
+[[ ! -d /media/BC_1t/ ]] && { echo "BC_1t not mounted!" >&2; exit 1; }
 
 rm *.THM
 
 shopt -s extglob
-rsync -ritP --remove-source-files --ignore-existing *.@(AVI|MOV) /media/BC_2T_ext/1tb/dump_$(date '+%Y-%m-%d')/
+rsync -ritP --remove-source-files --ignore-existing *.@(AVI|MOV) /media/BC_1t/dump_$(date '+%Y-%m-%d')/
 
 ls # to show any missed files
