@@ -13,6 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
 
+. /root/.bashrc
 
 #Check for prerequisites
 (( $UID != 0 )) && echo "You need to run this script as root" && exit 1
@@ -63,8 +64,8 @@ do
 				# printf " Sending today's digest... "
 				if ! /usr/bin/mail -s "safepac digest for $HOSTNAME on $(date +%F)" "$mailaddress" < "$lastdigest" ; then
 					printf "something went wrong. Please check mail.rc and msmtprc\n"
-				else					
-					printf "done!\n"
+				# else					
+					# printf "done!\n"
 				fi
 			fi
 		else
